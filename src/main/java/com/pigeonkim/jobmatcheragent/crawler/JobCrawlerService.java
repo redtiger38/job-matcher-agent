@@ -1,21 +1,46 @@
 package com.pigeonkim.jobmatcheragent.crawler;
 
+import com.pigeonkim.jobmatcheragent.domain.JobPosting;
+import com.pigeonkim.jobmatcheragent.domain.JobPostingRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class JobCrawlerService {
 
-    // URL을 받아서 해당 페이지의 HTML 전체를 가져오는 메서드
-    // 지금은 가장 단순한 형태 — 나중에 파싱 로직 추가 예정
-    public String fetchPageContent(String url) throws Exception {
+    // JobPostingRepository를 주입 받음
+    // C#의 생성자 주입 방식과 동일한 개념
+    private final JobPostingRepository jobPostingRepository;
 
+    public JobCrawlerService(JobPostingRepository jobPostingRepository) {
+        this.jobPostingRepository = jobPostingRepository;
+    }
+
+    // 기존 메서드 — 텍스트만 반환
+    public String fetchPageContent(String url) throws Exception {
         Document doc = Jsoup.connect(url)
-                .userAgent("Mozilla/5.0") // 봇 차단 우회용 브라우저 헤더
-                .timeout(10000)           // 10초 타임아웃
+                .userAgent("Mozilla/5.0")
+                .timeout(10000)
+                .get();
+        return doc.text();
+    }
+
+    // 새 메서드 — 크롤링 + DB 저장까지
+    public JobPosting fetchAndSave(String url) throws Exception {
+        Document doc = Jsoup.connect(url)
+                .userAgent("Mozilla/5.0")
+                .timeout(10000)
                 .get();
 
-        return doc.text(); // HTML 파싱해서 텍스트만 추출
+        JobPosting posting = new JobPosting();
+        posting.setUrl(url);
+        posting.setTitle(doc.title());        // 페이지 <title> 태그
+        posting.setDescription(doc.text());   // 전체 텍스트
+        posting.setFetchedAt(LocalDateTime.now());
+
+        return jobPostingRepository.save(posting); // DB 저장 후 저장된 객체 반환
     }
 }
