@@ -4,6 +4,7 @@ import com.pigeonkim.jobmatcheragent.domain.JobPosting;
 import com.pigeonkim.jobmatcheragent.domain.JobPostingRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,12 +36,19 @@ public class JobCrawlerService {
                 .timeout(10000)
                 .get();
 
+        Element companyLink = doc.selectFirst("a[data-company-name]");
+
+        // selectFirst()는 요소 없으면 null 반환 → null 체크 필수
+        String title   = companyLink != null ? companyLink.attr("data-position-name") : doc.title();
+        String company = companyLink != null ? companyLink.attr("data-company-name")  : "알 수 없음";
+
         JobPosting posting = new JobPosting();
         posting.setUrl(url);
-        posting.setTitle(doc.title());        // 페이지 <title> 태그
-        posting.setDescription(doc.text());   // 전체 텍스트
+        posting.setTitle(title);
+        posting.setCompany(company);
+        posting.setDescription(doc.text());
         posting.setFetchedAt(LocalDateTime.now());
 
-        return jobPostingRepository.save(posting); // DB 저장 후 저장된 객체 반환
+        return jobPostingRepository.save(posting);
     }
 }

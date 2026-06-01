@@ -25,8 +25,16 @@ public class ClaudeTestController {
     @GetMapping("/crawler/test")
     public String crawlerTest() throws Exception {
         JobPosting saved = jobCrawlerService.fetchAndSave(
-                "https://www.wanted.co.kr/wd/1"
+                "https://www.wanted.co.kr/wd/365123"
         );
         return "저장 완료. ID: " + saved.getId();
+    }
+    @GetMapping("/crawler/save")
+    public String crawlerSave() throws Exception {
+        JobPosting saved = jobCrawlerService.fetchAndSave(
+                "https://www.wanted.co.kr/wd/365123"
+        );
+        return "저장 완료. title: " + saved.getTitle()
+                + " / company: " + saved.getCompany();
     }
 }
