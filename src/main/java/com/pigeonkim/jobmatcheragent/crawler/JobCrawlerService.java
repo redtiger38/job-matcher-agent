@@ -8,6 +8,7 @@ import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class JobCrawlerService {
@@ -31,6 +32,13 @@ public class JobCrawlerService {
 
     // 새 메서드 — 크롤링 + DB 저장까지
     public JobPosting fetchAndSave(String url) throws Exception {
+
+        // 이미 저장된 URL이면 크롤링 없이 기존 데이터 반환
+        Optional<JobPosting> existing = jobPostingRepository.findByUrl(url);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+
         Document doc = Jsoup.connect(url)
                 .userAgent("Mozilla/5.0")
                 .timeout(10000)
