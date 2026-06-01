@@ -1,0 +1,5 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update   # create 아니고 update — 테스트 끝났으니
+    show-sql: true        # 콘솔에 SQL 출력
